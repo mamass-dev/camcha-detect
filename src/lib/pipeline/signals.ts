@@ -161,18 +161,24 @@ async function signauxFranceTravail(e: Entreprise, params: Parametres) {
   const token = await tokenFranceTravail();
   const nomNorm = normaliserNom(e.raison_sociale);
   if (!nomNorm) return;
-  const publieeDepuis = 92; // ~90 jours (valeurs admises : 1, 3, 7, 14, 31, 92)
+  // « publieeDepuis » plafonne à 31 jours ; pour les 90 jours du brief on passe
+  // par la fenêtre minCreationDate/maxCreationDate (les deux sont requis ensemble).
+  // Dates arrondies au jour : la clé de cache reste stable au sein d'une journée.
+  const maintenant = new Date(new Date().toISOString().slice(0, 10) + "T23:59:59Z");
+  const il90j = new Date(maintenant.getTime() - 90 * 86_400_000);
+  const iso = (d: Date) => d.toISOString().slice(0, 19) + "Z";
   const url = `https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search?departement=21&motsCles=${encodeURIComponent(
     nomNorm.split(" ").slice(0, 3).join(" ")
-  )}&publieeDepuis=${publieeDepuis}&range=0-49`;
+  )}&minCreationDate=${encodeURIComponent(iso(il90j))}&maxCreationDate=${encodeURIComponent(iso(maintenant))}&range=0-49`;
 
-  const { data } = await cachedJson<{ resultats?: OffreFT[] }>({
+  const { data } = await cachedJson<{ resultats?: OffreFT[] } | null>({
     fournisseur: "france_travail",
     url,
     init: { headers: { Authorization: `Bearer ${token}` } },
   });
 
-  const offres = (data.resultats ?? []).filter((o) => {
+  // 204 No Content (aucune offre pour ces mots-clés) → data null : zéro offre, pas une erreur.
+  const offres = (data?.resultats ?? []).filter((o) => {
     const nomOffre = normaliserNom(o.entreprise?.nom ?? "");
     return nomOffre && (nomOffre === nomNorm || nomOffre.includes(nomNorm) || nomNorm.includes(nomOffre));
   });

@@ -45,8 +45,9 @@ export async function cachedJson<T>(opts: {
   timeoutMs?: number;
 }): Promise<FetchResult<T>> {
   const cle = cacheKey([opts.fournisseur, opts.url, JSON.stringify(opts.init?.body ?? "")]);
-  const hit = await db().from("http_cache").select("corps").eq("cle", cle).maybeSingle();
-  if (hit.data?.corps != null) {
+  // La présence de la ligne fait foi : un « 204 sans contenu » est aussi mis en cache (corps null).
+  const hit = await db().from("http_cache").select("corps,statut").eq("cle", cle).maybeSingle();
+  if (hit.data) {
     return { data: hit.data.corps as T, fromCache: true };
   }
   const res = await fetch(opts.url, {
@@ -57,7 +58,8 @@ export async function cachedJson<T>(opts: {
     const body = await res.text().catch(() => "");
     throw new Error(`HTTP ${res.status} sur ${opts.url} — ${body.slice(0, 300)}`);
   }
-  const data = (await res.json()) as T;
+  const brut = await res.text();
+  const data = (brut ? JSON.parse(brut) : null) as T; // 204 No Content → null
   await db().from("http_cache").upsert({ cle, url: opts.url, statut: res.status, corps: data });
   await logAppel({
     fournisseur: opts.fournisseur,
