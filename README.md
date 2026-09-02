@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CAMCHA · Moteur de détection
 
-## Getting Started
+Prototype web de détection de comptes prioritaires pour CAMCHA (CSE externalisé, Dijon).
+Périmètre : entreprises de Côte-d'Or, 11 à 49 salariés, sièges dans le 21, sociétés commerciales.
 
-First, run the development server:
+Deux axes, **jamais fusionnés** :
+- **FIT** (statique) : le profil correspond-il à la cible ?
+- **MOMENT** (dynamique) : y a-t-il une raison d'appeler cette semaine ?
+
+## Stack
+
+Next.js 16 (App Router) · Supabase (Postgres) · SDK Anthropic · Vercel.
+
+## Pipeline (5 étapes idempotentes)
+
+1. **collect** — API Recherche d'entreprises (DINUM). Échantillon figé au premier run.
+2. **signals** — BODACC (18 mois, descriptifs structurés ; procédure collective ⇒ disqualification) + France Travail (offres 90 j, rattachement par nom — l'API ne filtre pas par SIREN).
+3. **resolve** — Google Places (si clé) puis devinette de domaine ; un domaine n'est retenu qu'avec **preuve** (SIREN ou adresse sur la home ou les mentions légales).
+4. **infer** — sitemap filtré, plafonds durs (8 pages, 200 Ko, 1 req/s, robots.txt), 1 appel Claude/entreprise, JSON strict validé (zod). **Garde-fou côté code** : verbatim introuvable dans le texte collecté ⇒ `inconnu` + compteur d'hallucinations. Aucune donnée de personne physique.
+5. **score** — jamais stocké, recalculé depuis les signaux. `inconnu` exclu du dénominateur. Poids modifiables dans l'UI (page Réglages).
+
+Tout appel réseau est mis en cache en base (`http_cache`) avec sa date : relancer une étape ne re-paye rien. Chaque appel réel est journalisé (`appel_api`) avec son coût.
+
+## Lancer en local
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# puis http://localhost:3000 — mot de passe : APP_PASSWORD de .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Pilotage CLI : `node --env-file=.env.local scripts/run-etape.mjs <collect|signals|resolve|infer|score> [limite]`
+(variable `CAMCHA_URL` pour cibler un autre port/hôte).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variables d'environnement (.env.local / Vercel)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Rôle | Sans elle |
+|---|---|---|
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Base de données | Bloquant |
+| `APP_PASSWORD` | Accès à l'app | Bloquant |
+| `ANTHROPIC_API_KEY` | Étape infer | Étape désactivée proprement |
+| `FRANCE_TRAVAIL_CLIENT_ID` / `_SECRET` | Signal offres d'emploi | Signal désactivé proprement |
+| `GOOGLE_PLACES_API_KEY` | Résolution de domaine (fort impact : ~10 % de résolution sans, 60-70 % attendus avec) | Devinette seule |
 
-## Learn More
+## TTL des signaux
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+recrutement 7 j · BODACC 90 j · séminaire/événement 180 j · RSE/avantages 365 j · statiques 365 j.
+Un signal expiré sort du calcul (il n'est pas compté zéro).
