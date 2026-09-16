@@ -9,7 +9,7 @@ const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600
 
 export const metadata: Metadata = {
   title: "Moteur de détection CAMCHA",
-  description: "Détection de comptes prioritaires — Côte-d'Or, 11 à 49 salariés",
+  description: "Détection de comptes prioritaires — PME de 10 à 49 salariés, Bourgogne",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -28,12 +28,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/" className="hover:opacity-70">Pipeline</Link>
               <Link href="/comptes" className="hover:opacity-70">Comptes</Link>
               <Link href="/reglages" className="hover:opacity-70">Réglages</Link>
+              <Link href="/demo" className="hover:opacity-70 font-semibold" style={{ color: "var(--moment)" }}>Démo Nuits · Beaune · Chalon</Link>
             </div>
             <span
               className="ml-auto text-[11px] uppercase tracking-widest"
               style={{ fontFamily: "var(--font-mono), monospace", color: "var(--muted)" }}
             >
-              Prototype · dépt 21
+              Prototype · Bourgogne
             </span>
           </div>
         </nav>
