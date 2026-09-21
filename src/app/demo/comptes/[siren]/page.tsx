@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { accroche, comptes, CRITERE_CDC, dateFr, nomAffiche, parSiren, SECTEURS } from "@/lib/demo";
-import { Score, Feu, LigneSignal, Etiquette } from "../../ui";
+import { Score, Feu, LigneSignal, Etiquette, LireScores } from "../../ui";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
@@ -64,6 +64,8 @@ export default async function Fiche({ params }: { params: Promise<{ siren: strin
           <Score valeur={c.fit} n={c.fit_n} axe="fit" />
         </div>
       </header>
+
+      <LireScores />
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
         <section className="carte overflow-hidden">

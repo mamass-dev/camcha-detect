@@ -3,12 +3,13 @@ import type { Compte, Signal } from "@/lib/demo";
 import { dateFr, LIBELLES } from "@/lib/demo";
 
 export function Score({ valeur, n, axe }: { valeur: number; n: number; axe: "fit" | "moment" }) {
+  const titre = axe === "moment" ? "MOMENT : le bon timing. Somme des poids des signaux de timing détectés, sur 100. Sert à classer, pas à noter." : "FIT : le bon profil. Somme des poids des signaux de profil détectés, sur 100. Sert à classer, pas à noter.";
   const couleur = axe === "fit" ? "var(--fit-ink)" : "var(--moment-ink)";
   const fond = axe === "fit" ? "var(--fit-soft)" : "var(--moment-soft)";
   return (
-    <span className="inline-flex flex-col items-center px-3 py-1.5 rounded-md tabular-nums min-w-16" style={{ background: fond, color: couleur }}>
+    <span title={titre} className="inline-flex flex-col items-center px-3 py-1.5 rounded-md tabular-nums min-w-16 cursor-help" style={{ background: fond, color: couleur }}>
       <span className="text-[10px] uppercase tracking-widest opacity-80" style={{ fontFamily: "var(--font-mono), monospace" }}>{axe}</span>
-      <b className="text-[19px] leading-tight">{valeur}</b>
+      <span className="leading-tight"><b className="text-[19px]">{valeur}</b><span className="text-[10.5px] opacity-70">/100</span></span>
       <span className="text-[10.5px] opacity-75">{n} signal{n > 1 ? "x" : ""}</span>
     </span>
   );
@@ -53,4 +54,17 @@ export function LigneSignal({ s, axe }: { s: Signal; axe?: "fit" | "moment" }) {
 
 export function LienFiche({ c, children }: { c: Compte; children: React.ReactNode }) {
   return <Link href={`/demo/comptes/${c.siren}`} className="hover:underline underline-offset-2">{children}</Link>;
+}
+
+export function LireScores({ compact }: { compact?: boolean }) {
+  return (
+    <details className="carte px-4 py-3 text-[13px]" style={{ color: "var(--muted)" }}>
+      <summary className="cursor-pointer font-medium" style={{ color: "var(--ink)" }}>Comment lire MOMENT et FIT</summary>
+      <div className="mt-2 flex flex-col gap-1.5 max-w-3xl">
+        <p>Deux scores sur 100, indépendants, jamais additionnés. <b style={{ color: "var(--moment-ink)" }}>MOMENT</b> répond à « est-ce le bon moment pour appeler ? » (recrutement, marché remporté, changement de dirigeant, capital, déménagement). <b style={{ color: "var(--fit-ink)" }}>FIT</b> répond à « est-ce le bon profil de client ? » (bien-être, RSE, engagement emploi, taille, ancienneté).</p>
+        <p>Chaque signal détecté apporte son poids (de 1 à 3). Le score est la somme des poids obtenus rapportée au total possible de l&apos;axe. Un signal « probable » compte 60 % de son poids. Un 100 est donc théorique : aucune entreprise ne cumule tous les signaux. <b>Un score sert à classer les comptes entre eux, pas à les noter.</b> 40 en MOMENT veut dire « en haut de la pile aujourd&apos;hui ».</p>
+        {!compact && <p>Les poids sont réglables. Barème complet sur la page <Link href="/demo/methode#scores" className="underline underline-offset-2">Méthode, sources et coûts</Link>.</p>}
+      </div>
+    </details>
+  );
 }

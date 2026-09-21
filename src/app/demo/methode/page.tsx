@@ -1,4 +1,4 @@
-import { comptes, DONNEES } from "@/lib/demo";
+import { comptes, DONNEES, LIBELLES, POIDS } from "@/lib/demo";
 
 export const dynamic = "force-static";
 
@@ -136,13 +136,44 @@ export default function Methode() {
         </div>
       </section>
 
+      <section id="scores" className="flex flex-col gap-3 scroll-mt-6">
+        <h2 className="font-semibold text-[16px]" style={{ fontFamily: "var(--font-display), sans-serif" }}>Barème des scores MOMENT et FIT</h2>
+        <p className="text-[13.5px] max-w-3xl" style={{ color: "var(--muted)" }}>
+          Deux scores sur 100, indépendants, jamais additionnés. Score = somme des poids des signaux détectés ÷ total des poids de l&apos;axe × 100. Un signal « probable » compte {Math.round(POIDS.valeur_probable * 100)} % de son poids.
+          Un 100 est théorique : les scores servent à classer les comptes entre eux, pas à les noter. Les poids ci-dessous sont réglables.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          {(["moment", "fit"] as const).map((axe) => {
+            const poids = POIDS[axe];
+            const total = Object.values(poids).reduce((a, b) => a + b, 0);
+            const couleur = axe === "moment" ? "var(--moment-ink)" : "var(--fit-ink)";
+            return (
+              <div key={axe} className="carte overflow-hidden">
+                <div className="px-4 py-3 border-b flex items-baseline justify-between" style={{ borderColor: "var(--line)" }}>
+                  <span className="font-semibold uppercase tracking-widest text-[12px]" style={{ fontFamily: "var(--font-mono), monospace", color: couleur }}>{axe}</span>
+                  <span className="text-[12px]" style={{ color: "var(--muted)" }}>{axe === "moment" ? "le bon timing" : "le bon profil"} · {Object.keys(poids).length} signaux · {total} points possibles</span>
+                </div>
+                <table className="w-full text-[13px]">
+                  <tbody>
+                    {Object.entries(poids).sort((a, b) => b[1] - a[1]).map(([cle, p]) => (
+                      <tr key={cle} className="border-t" style={{ borderColor: "var(--line)" }}>
+                        <td className="px-4 py-1.5">{LIBELLES[cle] ?? cle}</td>
+                        <td className="px-4 py-1.5 text-right tabular-nums" style={{ color: "var(--muted)" }}>{p} pt{p > 1 ? "s" : ""} · <b style={{ color: couleur }}>{Math.round((100 * p) / total)}</b> /100</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="carte p-5 flex flex-col gap-2">
-          <h2 className="font-semibold text-[15px]" style={{ fontFamily: "var(--font-display), sans-serif" }}>Comment fonctionne le scoring</h2>
+          <h2 className="font-semibold text-[15px]" style={{ fontFamily: "var(--font-display), sans-serif" }}>Durée de vie des signaux</h2>
           <p className="text-[13.5px]" style={{ color: "var(--muted)" }}>
-            Deux axes jamais fusionnés. <b style={{ color: "var(--fit-ink)" }}>FIT</b> : l&apos;entreprise ressemble à un bon client (taille, ancienneté, RSE, bien-être, engagement emploi).
-            {" "}<b style={{ color: "var(--moment-ink)" }}>MOMENT</b> : il se passe quelque chose maintenant (recrutement, marché remporté, changement de dirigeant, capital, déménagement).
-            Chaque signal a une source publique, une date et une durée de vie : un recrutement expire au bout de 7 jours sans renouvellement, un avis BODACC au bout de 90 jours. Les poids sont réglables.
+            Chaque signal a une source publique, une date et une durée de vie : un recrutement expire au bout de 7 jours sans renouvellement, un avis BODACC au bout de 90 jours, une mention RSE sur le site au bout d&apos;un an. Un compte remonte donc dans le digest quand il se passe quelque chose, et redescend seul ensuite.
           </p>
         </div>
         <div className="carte p-5 flex flex-col gap-2">

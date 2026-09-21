@@ -215,6 +215,7 @@ if (ftOk) {
   // Toutes les offres de la zone (par codes INSEE), puis rattachement local par nom d'employeur :
   // « motsCles » cherche dans le texte des offres, pas dans le nom de l'employeur.
   const offresZone = new Map();
+  const essais = {};
   async function collecter(codes, d0, d1) {
     const base = `https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search?commune=${codes.join(",")}&minCreationDate=${encodeURIComponent(iso(d0))}&maxCreationDate=${encodeURIComponent(iso(d1))}`;
     let debutRange = 0, total = null;
@@ -225,7 +226,11 @@ if (ftOk) {
       if (cache[cle]) { ({ corps, contentRange } = cache[cle]); noteAppel("france_travail", true); }
       else {
         const r = await fetch(url, { ...H, signal: AbortSignal.timeout(20000) });
-        if (r.status === 429) { await dodo(3000); continue; }
+        if (r.status === 429 || r.status >= 500) { // transitoire côté France Travail : on réessaie, puis on abandonne le lot
+          essais[url] = (essais[url] ?? 0) + 1;
+          if (essais[url] <= 4) { await dodo(2000 * essais[url]); continue; }
+          console.log(`   ⚠ lot abandonné après 4 essais (HTTP ${r.status}) : communes ${codes.join(",")}`); return;
+        }
         if (![200, 206, 204].includes(r.status)) throw new Error(`FT HTTP ${r.status} ${(await r.text()).slice(0, 150)}`);
         contentRange = r.headers.get("content-range");
         corps = r.status === 204 ? null : await r.json();

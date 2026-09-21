@@ -1,5 +1,5 @@
 import { accroche, comptes, digest, DONNEES, nomAffiche, SECTEURS, villeReference } from "@/lib/demo";
-import { Score, Feu, LigneSignal, LienFiche, Etiquette } from "./ui";
+import { Score, Feu, LigneSignal, LienFiche, Etiquette, LireScores } from "./ui";
 
 export const dynamic = "force-static";
 
@@ -39,6 +39,8 @@ export default function Digest() {
           </div>
         ))}
       </section>
+
+      <LireScores />
 
       <div className="flex flex-wrap gap-2 -mt-3">
         <a href="/demo/email" className="bouton bouton-secondaire">Voir l&apos;e-mail tel qu&apos;il sera envoyé</a>
