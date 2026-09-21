@@ -4,7 +4,9 @@ import { DONNEES } from "@/lib/demo";
 export default function DemoLayout({ children }: { children: React.ReactNode }) {
   const onglets = [
     { href: "/demo", l: "Digest du matin" },
+    { href: "/demo/email", l: "Aperçu e-mail" },
     { href: "/demo/comptes", l: "Tous les comptes" },
+    { href: "/demo/carte", l: "Carte" },
     { href: "/demo/methode", l: "Méthode, sources et coûts" },
   ];
   return (

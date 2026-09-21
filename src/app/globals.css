@@ -76,3 +76,5 @@ body {
   color: var(--ink);
   border: 1px solid var(--line);
 }
+
+.tuiles-douces { filter: saturate(0.35) contrast(0.9) brightness(1.05); }

@@ -1,4 +1,4 @@
-import { comptes, digest, DONNEES, nomAffiche, SECTEURS, villeReference } from "@/lib/demo";
+import { accroche, comptes, digest, DONNEES, nomAffiche, SECTEURS, villeReference } from "@/lib/demo";
 import { Score, Feu, LigneSignal, LienFiche, Etiquette } from "./ui";
 
 export const dynamic = "force-static";
@@ -40,6 +40,10 @@ export default function Digest() {
         ))}
       </section>
 
+      <div className="flex flex-wrap gap-2 -mt-3">
+        <a href="/demo/email" className="bouton bouton-secondaire">Voir l&apos;e-mail tel qu&apos;il sera envoyé</a>
+        <a href="/demo/export.csv" className="bouton bouton-secondaire">Télécharger le CSV ({tous.length} comptes)</a>
+      </div>
       <ol className="flex flex-col gap-4">
         {selection.map((c, i) => {
           const ref = villeReference(c);
@@ -71,6 +75,7 @@ export default function Digest() {
                 </div>
               </div>
 
+              <p className="pl-10 text-[14px] font-medium leading-snug">{accroche(c)}</p>
               <ul className="flex flex-col gap-2 pl-10">
                 {c.motifs.slice(0, 4).map((m) => <LigneSignal key={m.cle} s={m.signal} axe={m.axe} />)}
               </ul>

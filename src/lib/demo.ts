@@ -144,3 +144,44 @@ export function dateFr(iso: string | null | undefined): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 }
+
+/** Phrase d'accroche par règles : l'angle d'appel du commercial, sans lire les signaux. */
+export function accroche(c: Compte): string {
+  const s = (cle: string) => c.signaux.find((x) => x.cle === cle);
+  const parts: string[] = [];
+  const offres = s("offres_actives");
+  if (offres) {
+    const n = offres.nb ?? c.offres?.length ?? 1;
+    const premier = c.offres?.[0]?.intitule?.replace(/\s*[-(]?\s*[HF]\s*\/\s*[HF]\s*\)?/gi, "").replace(/\s+-\s*$/, "").replace(/\s{2,}/g, " ").trim();
+    parts.push(n === 1 ? `recrute ${premier ? `un(e) ${premier.toLowerCase()}` : "actuellement"}` : `recrute ${n} postes${premier ? ` dont ${premier.toLowerCase()}` : ""}`);
+  }
+  if (s("tension_recrutement")) parts.push("une offre reste ouverte depuis plus de 60 jours");
+  const marche = s("marche_public");
+  if (marche) { const ach = marche.verbatim?.match(/acheteur : (.+)$/)?.[1]; parts.push(`vient de remporter un marché public${ach ? ` (${ach.trim()})` : ""}`); }
+  const dir = s("changement_dirigeant");
+  if (dir) parts.push(`changement de dirigeant en ${new Date(dir.date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`);
+  const cap = s("augmentation_capital");
+  if (cap) { const m = cap.verbatim?.match(/Nouveau capital : ([\d.]+)/)?.[1]; parts.push(`capital modifié${m ? ` (${Math.round(Number(m) / 1000).toLocaleString("fr-FR")} k€)` : ""}`); }
+  if (s("transfert_siege")) parts.push("siège transféré récemment");
+  if (s("ouverture_etablissement")) parts.push("ouvre un établissement");
+  if (s("bien_etre_affiche")) parts.push("communique sur le bien-être au travail");
+  else if (s("demarche_rse")) parts.push("affiche une démarche RSE");
+  if (s("engagement_emploi")) parts.push("engagée sur l'alternance ou l'insertion");
+  if (s("ess_ou_mission")) parts.push("société à mission");
+  if (parts.length === 0) return `${c.effectif_libelle} salariés à ${c.commune}, aucun signal de timing sur la période.`;
+  const texte = parts.slice(0, 3).join(", ");
+  return texte.charAt(0).toUpperCase() + texte.slice(1) + ".";
+}
+
+export function ligneCsv(c: Compte): Record<string, string | number> {
+  const dec = c.decideurs[0];
+  return {
+    rang: 0, nom_commercial: nomAffiche(c), raison_sociale: c.raison_sociale, siren: c.siren, ville: c.commune, code_postal: c.code_postal, adresse: c.adresse,
+    distance_nuits_km: c.distances["Nuits-Saint-Georges"], distance_beaune_km: c.distances["Beaune"], distance_chalon_km: c.distances["Chalon-sur-Saône"], distance_dijon_km: c.distances["Dijon"],
+    effectif: c.effectif_libelle, secteur: SECTEURS[c.secteur ?? ""] ?? "", code_ape: c.ape, site: c.site?.url ?? "", telephone: c.telephone ?? "",
+    dirigeant: dec?.nom ?? "", fonction: dec?.fonction ?? "", recrute: c.offres?.length ? "oui" : "non", nb_offres: c.offres?.length ?? 0,
+    sante: c.sante.niveau, sante_motif: c.sante.motif, score_moment: c.moment, score_fit: c.fit, accroche: accroche(c),
+    signaux: c.motifs.map((m) => `${m.libelle} [${m.signal.source}, ${m.signal.date}] ${m.signal.source_url}`).join(" | "),
+    dernier_signal: c.dernier_signal ?? "",
+  };
+}

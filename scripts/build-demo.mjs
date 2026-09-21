@@ -355,11 +355,25 @@ if (!SANS_SITES) {
             .filter((t) => t.num.length === 10 && !/^(\d)\1{5}/.test(t.num) && t.num !== "0000000000" && (/[\s.-]/.test(t.brut) || /^0[3467]/.test(t.num)))
             .sort((a, b) => (/^03/.test(b.num) ? 1 : 0) - (/^03/.test(a.num) ? 1 : 0));
           if (tels[0]) e.telephone = tels[0].num.replace(/(\d{2})(?=\d)/g, "$1 ");
+          // Pages internes utiles : recrutement, à propos, RSE, engagements (3 max), même origine uniquement.
+          const pages = [{ url: e.site.url, corps }];
+          const origine = new URL(e.site.url).origin;
+          const liens = [...new Set($("a[href]").map((_, a) => $(a).attr("href")).get()
+            .map((h) => { try { return new URL(h, e.site.url).href.split("#")[0]; } catch { return null; } })
+            .filter((h) => h && h.startsWith(origine) && /recrut|carri|emploi|rejoign|job|talent|propos|about|qui-sommes|rse|engag|valeur|equipe/i.test(h)))].slice(0, 3);
+          for (const lien of liens) {
+            const pg = await getText("crawl", lien);
+            if (pg.statut === 200 && pg.texte) pages.push({ url: lien, corps: norm(texteDePage(pg.texte)) });
+          }
+          e.site.pages = pages.length;
           for (const l of LEX) {
-            const m = corps.match(l.re);
-            if (!m) continue;
-            const i = Math.max(0, m.index - 70);
-            e.signaux.push({ cle: l.cle, valeur: "probable", confiance: 0.55, verbatim: `« … ${corps.slice(i, m.index + m[0].length + 70).trim()} … »`, source: "Site web (détection lexicale)", source_url: e.site.url, date: e.site.date, methode: "infere" });
+            for (const pg of pages) {
+              const m = pg.corps.match(l.re);
+              if (!m) continue;
+              const i = Math.max(0, m.index - 70);
+              e.signaux.push({ cle: l.cle, valeur: "probable", confiance: 0.55, verbatim: `« … ${pg.corps.slice(i, m.index + m[0].length + 70).trim()} … »`, source: "Site web (détection lexicale)", source_url: pg.url, date: e.site.date, methode: "infere" });
+              break;
+            }
           }
           break candidats;
         }

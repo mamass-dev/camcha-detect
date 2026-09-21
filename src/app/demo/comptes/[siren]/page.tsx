@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { comptes, CRITERE_CDC, dateFr, nomAffiche, parSiren, SECTEURS } from "@/lib/demo";
+import { accroche, comptes, CRITERE_CDC, dateFr, nomAffiche, parSiren, SECTEURS } from "@/lib/demo";
 import { Score, Feu, LigneSignal, Etiquette } from "../../ui";
 
 export const dynamic = "force-static";
@@ -51,6 +51,7 @@ export default async function Fiche({ params }: { params: Promise<{ siren: strin
           <p className="text-[13.5px] mt-1" style={{ color: "var(--muted)" }}>
             {c.raison_sociale} · {c.commune} · {c.effectif_libelle} salariés · créée le {dateFr(c.date_creation)}
           </p>
+          <p className="text-[14.5px] font-medium mt-3 max-w-2xl">{accroche(c)}</p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Feu niveau={c.sante.niveau} />
             {c.est_mission && <Etiquette ton="fit">Société à mission</Etiquette>}
