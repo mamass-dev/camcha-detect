@@ -1,3 +1,16 @@
+/*
+ * ╔══════════════════════════════════════════════════════════════════════════════╗
+ * ║  ██████  COPYRIGHT - ATTENTION  ██████                                        ║
+ * ║                                                                              ║
+ * ║  © 2026 Globe Créateur — Axel MASSON. Tous droits réservés.                  ║
+ * ║  Moteur de détection CAMCHA : démo confidentielle réalisée pour OVE Conseil. ║
+ * ║  Code, méthode de scoring, structure des données et interface sont la        ║
+ * ║  propriété exclusive de Globe Créateur.                                      ║
+ * ║  Toute reproduction, diffusion, réutilisation ou rétro-ingénierie, totale    ║
+ * ║  ou partielle, sans accord écrit préalable est INTERDITE.                    ║
+ * ║  Contact : axel@globecreateur.fr                                             ║
+ * ╚══════════════════════════════════════════════════════════════════════════════╝
+ */
 import donnees from "@/data/demo.json";
 
 export type Signal = {
