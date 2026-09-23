@@ -16,7 +16,7 @@ export default function Login() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ motDePasse }),
     });
-    if (r.ok) router.push("/");
+    if (r.ok) router.push("/demo");
     else setErreur("Mot de passe incorrect.");
   }
 

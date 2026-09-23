@@ -21,20 +21,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <nav className="border-b" style={{ borderColor: "var(--line)", background: "var(--surface)" }}>
           <div className="mx-auto max-w-6xl px-6 h-14 flex items-center gap-8">
-            <Link href="/" className="font-bold text-[15px]" style={{ fontFamily: "var(--font-display), sans-serif" }}>
+            <Link href="/demo" className="font-bold text-[15px]" style={{ fontFamily: "var(--font-display), sans-serif" }}>
               CAMCHA<span style={{ color: "var(--muted)" }}> · détection</span>
             </Link>
-            <div className="flex gap-5 text-[13.5px] font-medium" style={{ color: "var(--muted)" }}>
-              <Link href="/" className="hover:opacity-70">Pipeline</Link>
-              <Link href="/comptes" className="hover:opacity-70">Comptes</Link>
-              <Link href="/reglages" className="hover:opacity-70">Réglages</Link>
-              <Link href="/demo" className="hover:opacity-70 font-semibold" style={{ color: "var(--moment)" }}>Démo Nuits · Beaune · Chalon</Link>
-            </div>
             <span
               className="ml-auto text-[11px] uppercase tracking-widest"
               style={{ fontFamily: "var(--font-mono), monospace", color: "var(--muted)" }}
             >
-              Prototype · Bourgogne
+              Démo · Nuits · Beaune · Chalon
             </span>
           </div>
         </nav>
